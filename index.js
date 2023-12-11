@@ -6,20 +6,15 @@ const fs = require('fs');
 const path = require('path');
 
 
-// 最大尝试多少次
+// Maximum number of attempts
 const maxTimes = 10000;
 
 async function main(mnemonic, index) {
 
-// Create Client
+  // Create Client
   const client = new TonClient({
-    endpoint:
-        "https://toncenter.com/api/v2/jsonRPC",
-        // "https://ton.access.orbs.network/55B2c0ff5Bd3F8B62C092Ab4D238bEE463E655B2/1/mainnet/toncenter-api-v2/jsonRPC"
-        // "https://ton.access.orbs.network/55B1c0ff5Bd3F8B62C092Ab4D238bEE463E655B1/1/mainnet/toncenter-api-v2/jsonRPC",
-        //"https://ton.access.orbs.network/44A2c0ff5Bd3F8B62C092Ab4D238bEE463E644A2/1/mainnet/toncenter-api-v2/jsonRPC",
-});
-
+    endpoint: "https://toncenter.com/api/v2/jsonRPC",
+  });
 
   const mnemonics = mnemonic.split(' ');
   let keyPair = await mnemonicToPrivateKey(mnemonics);
@@ -30,30 +25,30 @@ async function main(mnemonic, index) {
   });
 
   try {
-    // await sleep(1500);
     let contract = client.open(wallet);
-    console.log(wallet.address + ' 开始运行');
+    console.log(`${wallet.address} started running`);
     let balance = await contract.getBalance();
-    console.log(`第${index}个钱包：【${wallet.address}  】，余额：${balance}`)
+    console.log(`Wallet ${index}: [${wallet.address}], balance: ${balance}`);
+    
     if (balance == 0) {
-      console.log(`第${index}个钱包：【${wallet.address}  】，余额为0，3分钟后重试`)
+      console.log(`Wallet ${index}: [${wallet.address}], balance is 0. Retrying in 3 minutes.`);
       await sleep(180000);
-      throw new Error('余额为0');
+      throw new Error('Balance is 0');
     }
-
 
     let v = [];
 
     for (let i = 0; i < 4; i++) {
       v.push(
         internal({
-          to: `EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c`,
+          to: "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c",
           to: wallet.address,
           value: '0',
           body: 'data:application/json,{"p":"ton-20","op":"mint","tick":"nano","amt":"100000000000"}'
         })
       );
     }
+    
     let count = 0;
     let seqno = -1;
     let lastSuccess = true
@@ -61,13 +56,8 @@ async function main(mnemonic, index) {
     let lastError = ''
 
     for (let i = 0; i < maxTimes; i++) {
-      // await sleep(1000);
       try {
-//      if (seqno === -1 || lastSuccess || lastError.indexOf('seqno') > -1) {
         seqno = await contract.getSeqno();
-//      }
-//       console.log('seqno' , seqno);
-        // await sleep(300);
         let transfer = await contract.sendTransfer({
           seqno: seqno,
           secretKey: keyPair.secretKey,
@@ -76,26 +66,24 @@ async function main(mnemonic, index) {
         });
         count++;
         if (seqno > lastSeqno) {
-          console.log(`第${index}个钱包：【${wallet.address}  】，第${count}次成功, seqno: ${seqno}, resp： ${transfer}, 当前时间：`, new Date().toLocaleString());
+          console.log(`Wallet ${index}: [${wallet.address}], ${count}th successful transaction, seqno: ${seqno}, resp: ${transfer}, current time: ${new Date().toLocaleString()}`);
         } else {
-          console.log(`第${index}个钱包：【${wallet.address}  】，第${count}次交易已发送, seqno: ${seqno}, resp： ${transfer}, 当前时间：`, new Date().toLocaleString());
+          console.log(`Wallet ${index}: [${wallet.address}], ${count}th transaction sent, seqno: ${seqno}, resp: ${transfer}, current time: ${new Date().toLocaleString()}`);
         }
         lastSeqno = seqno
         lastSuccess = true
       } catch (error) {
         lastSuccess = false
-        console.log(`第${index}个钱包：【${wallet.address}  】78:`, error.response.data.code, error.response.data.error)
+        console.log(`Wallet ${index}: [${wallet.address}], error: ${error.response.data.code}, ${error.response.data.error}`);
         if (error.response.data.code === undefined) {
-          console.log('error.response.data.code === undefined', error.response.status, error.response.statusText)
+          console.log(`error.response.data.code === undefined, ${error.response.status}, ${error.response.statusText}`);
         }
-//      await sleep(100);
       }
-
     }
   } catch (err) {
-    console.log('create client error', err.response && err.response.data ? err.response.data.code : err.response, err.response && err.response.data ? err.response.data.error : '', err)
-    console.log(`重试第${index}个钱包`)
-    main(mnemonic, index)
+    console.log('create client error', err.response && err.response.data ? err.response.data.code : err.response, err.response && err.response.data ? err.response.data.error : '', err);
+    console.log(`Retrying wallet ${index}`);
+    main(mnemonic, index);
   }
 }
 
@@ -103,14 +91,13 @@ const sleep = (time) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
-
 const getPhrase = () => {
   try {
     const phrases = fs.readFileSync(path.join(__dirname, './phrases.txt'), 'utf-8');
     return phrases.split('\n');
   } catch (error) {
     if (error.code === 'ENOENT') {
-      console.log('未发现phrases.txt文件，已自动创建文件')
+      console.log('phrases.txt file not found, creating the file automatically')
       fs.writeFileSync(path.join(__dirname, './phrases.txt'), '');
     } else {
       console.log(error);
@@ -124,15 +111,15 @@ const mnemonicList = getPhrase().map(t => t ? t.trim() : '').filter(t => t && t.
 if (mnemonicList.length === 0) {
   console.error(`
     ******************************************************
-    未发现有效的钱包助记词，请在当前目录的phrases.txt文件中填写
-    需要12位或24位的助记词，每行一个
-    可以添加注释，以#开头即可，以下为文件示例：
-    # 这是注释 我的钱包
+    No valid wallet mnemonics found. Please fill in the phrases.txt file in the current directory.
+    It requires 12 or 24 word mnemonics, one per line.
+    You can add comments by starting a line with '#'. Here's an example:
+    # This is a comment for my wallet
     word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24
     ******************************************************`)
   return
 } else {
-  console.log(`本次共发现${mnemonicList.length}个助记词`)
+  console.log(`Found{mnemonicList.length}mnemonics in this run`)
 }
 
 const checkStatus = (addr) => {
