@@ -1,27 +1,15 @@
-# ton-mint
+ton-like
+Here are the steps to deploy and mint tokens in a Node.js environment:
 
+To install the Node.js environment , visit the Node.js official website and download and install the Node.js version suitable for your operating system.
 
-以下是在 Node.js 环境下部署和铸造代币的步骤：
+Clone the repository Open the command line tool and execute the following command to clone the repository: git clone https://github.com/zfy666ci/ton-mint.git
 
-1. **安装 Node.js 环境**
-   访问 [Node.js 官网](https://nodejs.org/en) 并下载安装适合你操作系统的 Node.js 版本。
+Install dependencies. Enter the cloned warehouse directory and run the following command to install the necessary dependencies: cd ton-mint npm install @ton/ton @ton/crypto @ton/core buffer
 
-2. **克隆仓库**
-   打开命令行工具并执行以下命令以克隆仓库：
-   git clone https://github.com/zfy666ci/ton-mint.git
-3. **安装依赖**
-   进入克隆的仓库目录，然后运行以下命令安装必要的依赖：
-   cd ton-mint
-   npm install  @ton/ton @ton/crypto @ton/core buffer
+Configure and run the script Open index.jsthe file and set your mnemonic phrase. After completing the configuration, run the following command on the command line to execute the script: node index.js
 
-4. **配置并运行脚本**
-   打开 `index.js` 文件，并设置你的 助记词。
-   完成配置后，在命令行中运行以下命令来执行脚本：
-   node index.js
+Run quickly
+Open index.jsthe file, set multiple mnemonic words and execute after completing the configuration.
 
-# **快速运行**
-   打开`index.js` 文件，设置多个助记词
-   完成配置后执行
-   ```
-   chmod +x run.sh && ./run.sh
-   ```
+chmod +x run.sh && ./run.sh
