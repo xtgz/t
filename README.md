@@ -3,7 +3,6 @@ Here are the steps to deploy and mint tokens in a Node.js environment:
 
 To install the Node.js environment , visit the Node.js official website and download and install the Node.js version suitable for your operating system.
 
-Clone the repository Open the command line tool and execute the following command to clone the repository: git clone https://github.com/zfy666ci/ton-mint.git
 
 Install dependencies. Enter the cloned warehouse directory and run the following command to install the necessary dependencies: cd ton-mint npm install @ton/ton @ton/crypto @ton/core buffer
 
